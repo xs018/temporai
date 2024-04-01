@@ -111,11 +111,9 @@ class DynamicDeepHitTimeToEventAnalysis(BaseTimeToEventAnalysis, DDHEmbedding):
         with mlflow.start_run() as run:
             self.model.fit(processed_data, event_times, event_values)
             model_info = mlflow.pytorch.log_model(self.model.model, "model")
-            # print(model_info)
-            # print(run.info.run_id)
-            # print(run.info)
-            with open(os.path.join(run.info.artifact_uri.replace("file://", ""), "model/data", "model.pkl"), "wb") as f:
-                pickle.dump(self, f)
+            
+            # with open(os.path.join(run.info.artifact_uri.replace("file://", ""), "model/data", "model.pkl"), "wb") as f:
+            #     pickle.dump(self, f)
 
         return self
 
