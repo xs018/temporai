@@ -64,7 +64,7 @@ class LongitudinalNSOTreeTimeToEventAnalysisParams:
 
 
 @plugins.register_plugin(name="long_nsotree", category="time_to_event")
-class DynamicDeepHitTimeToEventAnalysis(BaseTimeToEventAnalysis, DDHEmbedding):
+class LongitudinalNSOTreeTimeToEventAnalysis(BaseTimeToEventAnalysis, DDHEmbedding):
     ParamsDefinition = LongitudinalNSOTreeTimeToEventAnalysisParams
     params: LongitudinalNSOTreeTimeToEventAnalysisParams  # type: ignore
     def __init__(self, **params: Any) -> None:
