@@ -63,8 +63,9 @@ class DDHEmbedding:
     ) -> np.ndarray:
         if static is None:
             static = np.zeros((len(temporal), 0))
-
+        # temporal (NxN_t): [[subject_1: temporal features], [subject_2:temporal features], ...]
         merged = []
+        # merged: NxN_tx(temporal features + static + observed time)
         for idx, item in enumerate(temporal):  # pylint: disable=unused-variable
             local_static = static[idx].reshape(1, -1)
             local_static = np.repeat(local_static, len(temporal[idx]), axis=0)
@@ -96,11 +97,17 @@ class DDHEmbedding:
     def _convert_data(
         self, data: dataset.TimeToEventAnalysisDataset
     ) -> Tuple[Optional[np.ndarray], List[np.ndarray], List[np.ndarray], Optional[np.ndarray], Optional[np.ndarray]]:
+        # static (Nxnum_static)
         if data.has_static:
             static = data.static.numpy() if data.static is not None else None
         else:
             static = np.zeros((data.time_series.num_samples, 0))
+
+        # heavy for loop, time-consuming. transfer the temporal data into a list, which is repeated work done in "data_load" 
+        # temporal (NxN_t): [[subject_1: temporal features], [subject_2:temporal features], ...]
         temporal = [df.to_numpy() for df in data.time_series.list_of_dataframes()]
+        # convert the observed time points into float time
+        # NxNt
         observation_times = data.time_series.time_indexes_float()
         if data.predictive is not None and data.predictive.targets is not None:
             event_times, event_values = (
@@ -130,6 +137,7 @@ class DDHEmbedding:
         processed_data = self._merge_data(static, temporal, observation_times)
         if TYPE_CHECKING:  # pragma: no cover
             assert event_times is not None and event_values is not None  # nosec B101
+        # processed_data: Nx[N_tx(temporal features + static + observed time)]
         return processed_data, event_times, event_values
 
     def prepare_predict(  # pylint: disable=unused-argument
