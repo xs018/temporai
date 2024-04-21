@@ -147,6 +147,7 @@ class DynamicDeepHitModel:
         """
         discretized_t, self.split_time = self.discretize(t, self.split, self.split_time)
         processed_data = self._preprocess_training_data(x, discretized_t, e)
+        # x_train: NxN_t(seq_len)xnum_features
         x_train, t_train, e_train, x_val, t_val, e_val = processed_data
         inputdim = x_train.shape[-1]
         seqlen = x_train.shape[-2]
@@ -235,6 +236,8 @@ class DynamicDeepHitModel:
         """
         if split_time is None:
             _, split_time = np.histogram(t, split - 1)  # type: ignore
+        #split_time: 0-100, 99 split time ranges. 
+        # digital: e.g. [[0,0.1], [0.1, 0.2], ..., [0.9, 1.0]], 0.15 => 2 
         t_discretized = np.array(
             [np.digitize(t_, split_time, right=True) - 1 for t_ in t], dtype=object  # type: ignore
         )
@@ -255,7 +258,7 @@ class DynamicDeepHitModel:
         idx = list(range(x.shape[0]))
         np.random.seed(self.random_state)
         np.random.shuffle(idx)
-
+# fill the missing values in longitudinal direction with pad. In the test dataset, if the true length > the longest one, truncated the value 
         x = get_padded_features(x)
         self.pad_size = x.shape[1]
         x_train_np, t_train_np, e_train_np = x[idx], t[idx], e[idx]
