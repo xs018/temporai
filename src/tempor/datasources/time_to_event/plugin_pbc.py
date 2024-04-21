@@ -72,14 +72,14 @@ class PBCDataSource(datasource.TimeToEventAnalysisDataSource):
             request = requests.get(self.url(), timeout=5).content
             data = pd.read_csv(io.StringIO(request.decode("utf-8")))
             data.to_csv(self.datafile_path, index=False)
-
+# processing variables
         data["time"] = data["years"] - data["year"]
         data = data.sort_values(by=["id", "time"], ignore_index=True)
         data["histologic"] = data["histologic"].astype(str)
         dat_cat = data[["drug", "sex", "ascites", "hepatomegaly", "spiders", "edema", "histologic"]].copy()
         dat_num = data[["serBilir", "serChol", "albumin", "alkaline", "SGOT", "platelets", "prothrombin"]].copy()
         age = data["age"] + data["years"]
-
+# one hot encoding categorical variables
         for col in dat_cat.columns:
             dat_cat[col] = LabelEncoder().fit_transform(dat_cat[col])
 
@@ -122,7 +122,21 @@ class PBCDataSource(datasource.TimeToEventAnalysisDataSource):
         ]
         static_cols = ["sex"]
         sample_index = []
+        
+        """
+        For loop each subject and reorganize the input dataset as follows 
+        [This is super time-consuming for a large dataset]:
+        
+        input data:
+        sample_idx time_idx features
+        0            1        ...
+                     2        ...
+        ...
 
+        output df_static(Nxnum_static) df_time_series (NxN_txtemporal; same format as input)
+                df_event(Nx2)[contains time (scalr) and event (scalar) for each subject]
+        """
+        
         for id_ in sorted(list(set(data["id"]))):
             sample_index.append(id_)
             patient = x_scaled[data["id"] == id_]
